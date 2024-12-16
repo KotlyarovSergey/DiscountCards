@@ -6,4 +6,5 @@
     <string name="card_image">card image</string>
     <string name="set_title_dialog_title">Новая карта</string>
     <string name="set_title_dialog_hint">Название карты</string>
+    <string name="show_card_error_message">Упс!&#xA;Что-то пошло не так</string>
 </resources>

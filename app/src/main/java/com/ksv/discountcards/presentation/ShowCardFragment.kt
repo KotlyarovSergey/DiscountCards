@@ -1,5 +1,6 @@
 package com.ksv.discountcards.presentation
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -28,8 +29,11 @@ class ShowCardFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        binding.cardImage.setImageURI(Uri.parse("content://com.android.providers.media.documents/document/image%3A32"))
-        binding.cardImage.setImageURI(viewModel.selectedCard)
-        binding.status.text = viewModel.selectedCard.toString()
+        val selectedCard = viewModel.selectedCard
+        if(selectedCard != null){
+            binding.cardImage.setImageURI(Uri.parse(selectedCard.fileUri))
+        } else {
+            binding.errorMessage.visibility = View.VISIBLE
+        }
     }
 }

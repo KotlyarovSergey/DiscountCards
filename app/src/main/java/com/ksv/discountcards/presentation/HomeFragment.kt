@@ -13,8 +13,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.ksv.discountcards.R
 import com.ksv.discountcards.databinding.FragmentHomeBinding
+import com.ksv.discountcards.entity.Card
 import com.ksv.discountcards.entity.OuterImage
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -23,7 +25,7 @@ class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
     private val viewModel: CardsViewModel by activityViewModels()
-    private val adapter = CardRecyclerAdapter()
+    private val adapter = CardRecyclerAdapter{onItemClickListener(it)}
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { galleryUri ->
             try {
@@ -86,4 +88,8 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun onItemClickListener(card: Card){
+        viewModel.selectCard(card)
+        findNavController().navigate(R.id.action_homeFragment_to_showCardFragment)
+    }
 }

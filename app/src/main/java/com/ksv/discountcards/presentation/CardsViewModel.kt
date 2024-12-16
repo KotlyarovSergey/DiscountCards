@@ -1,6 +1,5 @@
 package com.ksv.discountcards.presentation
 
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,7 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class CardsViewModel : ViewModel() {
-    private var _selectedCard: Uri? = null
+    private var _selectedCard: Card? = null
     val selectedCard get() = _selectedCard
 
     private val _cards = MutableStateFlow<MutableList<Card>>(mutableListOf())
@@ -35,5 +34,8 @@ class CardsViewModel : ViewModel() {
         }
     }
 
+    fun selectCard(card: Card){
+        _selectedCard = card
+    }
 
 }

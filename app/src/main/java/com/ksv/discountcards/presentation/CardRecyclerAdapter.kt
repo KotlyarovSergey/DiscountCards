@@ -7,7 +7,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.ksv.discountcards.databinding.CardItemViewBinding
 import com.ksv.discountcards.entity.Card
 
-class CardRecyclerAdapter: RecyclerView.Adapter<CardRecyclerAdapter.CardViewHolder>() {
+class CardRecyclerAdapter(
+    private val onClick: (Card) -> Unit
+): RecyclerView.Adapter<CardRecyclerAdapter.CardViewHolder>() {
     private var cards: List<Card> = emptyList()
 
     inner class CardViewHolder(val binding: CardItemViewBinding): RecyclerView.ViewHolder(binding.root)
@@ -28,10 +30,8 @@ class CardRecyclerAdapter: RecyclerView.Adapter<CardRecyclerAdapter.CardViewHold
         val card = cards[position]
         with(holder.binding){
             title.text = card.title
-//            image.setImageURI(Utils.fileNameToUri(card.fileName))
-//            image.setImageURI(card.uri)
             image.setImageURI(Uri.parse(card.fileUri))
-
+            mainFrame.setOnClickListener { onClick(card) }
         }
     }
 
