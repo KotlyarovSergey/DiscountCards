@@ -15,18 +15,11 @@
         android:layout_gravity="center_horizontal"
         app:cardCornerRadius="16dp">
 
-        <CheckBox
-            android:id="@+id/check"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|start"
-            android:visibility="gone"
-            tools:visibility="visible" />
-
         <LinearLayout
+            android:id="@+id/linear"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#E7B96F"
+            android:background="@color/card_background_normal"
             android:orientation="vertical"
             android:padding="4dp">
 
@@ -56,6 +49,14 @@
                 android:textStyle="bold"
                 tools:text="Магнит" />
         </LinearLayout>
+
+        <CheckBox
+            android:id="@+id/check"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|start"
+            android:visibility="gone"
+            tools:visibility="visible" />
     </androidx.cardview.widget.CardView>
 
 </FrameLayout>

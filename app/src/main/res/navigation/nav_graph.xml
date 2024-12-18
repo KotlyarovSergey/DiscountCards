@@ -16,7 +16,7 @@
     </fragment>
     <fragment
         android:id="@+id/showCardFragment"
-        android:name="com.ksv.discountcards.presentation.ShowCardFragment"
+        android:name="com.ksv.discountcards.presentation.FullCardFragment"
         android:label="fragment_show_card"
-        tools:layout="@layout/fragment_show_card" />
+        tools:layout="@layout/fragment_full_card" />
 </navigation>

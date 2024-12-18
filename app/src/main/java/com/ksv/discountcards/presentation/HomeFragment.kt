@@ -2,6 +2,7 @@ package com.ksv.discountcards.presentation
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
@@ -25,7 +27,11 @@ class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
     private val viewModel: CardsViewModel by activityViewModels()
-    private val adapter = CardRecyclerAdapter{onItemClickListener(it)}
+    private val adapter =
+        CardRecyclerAdapter(
+            { onOpenCard(it) },
+            { onItemClickListener(it) },
+            { onItemLongClickListener(it) })
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { galleryUri ->
             try {
@@ -34,6 +40,25 @@ class HomeFragment : Fragment() {
                 e.printStackTrace()
             }
         }
+    private lateinit var onBackPressedCallback: OnBackPressedCallback
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val dispatcher = requireActivity().onBackPressedDispatcher
+        onBackPressedCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                Log.d("ksvlog", "isSelectMode: ${adapter.isSelectMode}")
+                if (adapter.isSelectMode) {
+                    adapter.unSelectAll()
+                } else {
+                    onBackPressedCallback.isEnabled = false
+                    requireActivity().onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        }
+        dispatcher.addCallback(this, onBackPressedCallback)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -70,13 +95,18 @@ class HomeFragment : Fragment() {
             AlertDialog.Builder(requireContext())
                 .setView(view)
                 .setPositiveButton("OK") { _, _ ->
-                    val title = view.findViewById<EditText>(R.id.title_in_dialog).text.toString().trim()
-                    if (title.isNotEmpty()){
-                        val outerImage = OuterImage( imageUri, title)
+                    val title =
+                        view.findViewById<EditText>(R.id.title_in_dialog).text.toString().trim()
+                    if (title.isNotEmpty()) {
+                        val outerImage = OuterImage(imageUri, title)
                         viewModel.saveOuterImage(outerImage)
-                    }else{
+                    } else {
                         Toast
-                            .makeText(requireContext(), "Надо ввести название карты", Toast.LENGTH_SHORT)
+                            .makeText(
+                                requireContext(),
+                                "Надо ввести название карты",
+                                Toast.LENGTH_SHORT
+                            )
                             .show()
                     }
                 }
@@ -88,8 +118,16 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun onItemClickListener(card: Card){
+    private fun onOpenCard(card: Card) {
         viewModel.selectCard(card)
         findNavController().navigate(R.id.action_homeFragment_to_showCardFragment)
+    }
+
+    private fun onItemClickListener(position: Int) {
+        //adapter.onItemClick(position)
+    }
+
+    private fun onItemLongClickListener(position: Int) {
+        //adapter.onItemLongClick(position)
     }
 }

@@ -1,5 +1,6 @@
 package com.ksv.discountcards.presentation
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +10,7 @@ import com.ksv.discountcards.entity.OuterImage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.lang.NullPointerException
 
 class CardsViewModel : ViewModel() {
     private var _selectedCard: Card? = null
@@ -28,14 +30,27 @@ class CardsViewModel : ViewModel() {
         val repository = Repository()
         viewModelScope.launch {
             val card = repository.saveOuterImageAsCard(outerImage)
-            Log.d("ksvlog", card.toString())
             card?.let { _cards.value.add(it) }
-            Log.d("ksvlog", cards.toString())
         }
     }
 
     fun selectCard(card: Card){
-        _selectedCard = card
+        _selectedCard = try {
+            Uri.parse(card.fileUri)
+            card
+        } catch (ex: NullPointerException){
+            null
+        }
+    }
+
+    fun selectCard(index: Int){
+        _selectedCard = try {
+            val card = cards.value[index]
+            Uri.parse(card.fileUri)
+            card
+        } catch (ex: NullPointerException){
+            null
+        }
     }
 
 }
