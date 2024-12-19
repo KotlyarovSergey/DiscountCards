@@ -37,8 +37,6 @@ class HomeFragment : Fragment() {
     private val adapter =
         CardRecyclerAdapter(
             { onOpenCard(it) },
-            { onItemClickListener(it) },
-            { onItemLongClickListener(it) },
             { onCanBeEditItem(it) },
             { onCanBeDeleteItems(it) }
         )
@@ -99,7 +97,7 @@ class HomeFragment : Fragment() {
         }
 
         viewModel.cards.onEach {
-            adapter.setData(it)
+            adapter.submitList(it)
         }.launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
@@ -124,15 +122,7 @@ class HomeFragment : Fragment() {
                     }
                     R.id.menu_delete -> {
                         val deleted = canBeDeleteCards
-                        Log.d("ksvlog", "HomeFrag.onMenuItSel : $deleted")
                         adapter.unSelectAll()
-                        Log.d("ksvlog", "HomeFrag.onMenuItSel : $deleted")
-                        viewModel.deleteCards(deleted)
-                        true
-                    }
-                    R.id.menu_delete_test -> {
-                        val card = viewModel.cards.value.last()
-                        val deleted = listOf(card)
                         viewModel.deleteCards(deleted)
                         true
                     }
@@ -169,18 +159,6 @@ class HomeFragment : Fragment() {
         findNavController().navigate(R.id.action_homeFragment_to_showCardFragment)
     }
 
-    private fun onItemClickListener(position: Int) {
-        //adapter.onItemClick(position)
-    }
-
-    private fun onItemLongClickListener(position: Int) {
-        //adapter.onItemLongClick(position)
-    }
-
-//    private fun onCanBeDeleteItems(deletedSet: Set<Int>){
-//        canBeDeleteItems = deletedSet
-//        mainMenu.findItem(R.id.menu_delete).isVisible = deletedSet.isNotEmpty()
-//    }
     private fun onCanBeDeleteItems(deletedList: List<Card>){
         canBeDeleteCards = deletedList
         mainMenu.findItem(R.id.menu_delete).isVisible = canBeDeleteCards.isNotEmpty()
