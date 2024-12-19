@@ -13,10 +13,17 @@
         <action
             android:id="@+id/action_homeFragment_to_showCardFragment"
             app:destination="@id/showCardFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_editCardFragment"
+            app:destination="@id/editCardFragment" />
     </fragment>
     <fragment
         android:id="@+id/showCardFragment"
         android:name="com.ksv.discountcards.presentation.FullCardFragment"
         android:label="fragment_show_card"
         tools:layout="@layout/fragment_full_card" />
+    <fragment
+        android:id="@+id/editCardFragment"
+        android:name="com.ksv.discountcards.presentation.EditCardFragment"
+        android:label="EditCardFragment" />
 </navigation>

@@ -9,6 +9,7 @@ import com.ksv.discountcards.entity.Card
 import com.ksv.discountcards.entity.OuterImage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.lang.NullPointerException
 
@@ -30,25 +31,49 @@ class CardsViewModel : ViewModel() {
         val repository = Repository()
         viewModelScope.launch {
             val card = repository.saveOuterImageAsCard(outerImage)
-            card?.let { _cards.value.add(it) }
+            card?.let {
+                _cards.update {
+                    _cards.value.toMutableList().apply {
+                        this.add(card)
+                    }
+                }
+            }
         }
     }
 
-    fun selectCard(card: Card){
+    fun updateCard(card: Card){
+        val repository = Repository()
+        viewModelScope.launch {
+            repository.updateCard(card)
+            _cards.value = repository.getAllCards().toMutableList()     // !!!!!!!!! заменить на LiveData
+        }
+    }
+
+    fun selectCard(card: Card) {
         _selectedCard = try {
             Uri.parse(card.fileUri)
             card
-        } catch (ex: NullPointerException){
+        } catch (ex: NullPointerException) {
             null
         }
     }
 
-    fun selectCard(index: Int){
+    fun deleteCards(deletedCards: List<Card>){
+        val repository = Repository()
+        viewModelScope.launch {
+            deletedCards.forEach {
+                repository.deleteCard(it)
+            }
+            _cards.value = repository.getAllCards().toMutableList()     // !!!!!!!!! заменить на LiveData
+        }
+    }
+
+    fun selectCard(index: Int) {
         _selectedCard = try {
             val card = cards.value[index]
             Uri.parse(card.fileUri)
             card
-        } catch (ex: NullPointerException){
+        } catch (ex: NullPointerException) {
             null
         }
     }

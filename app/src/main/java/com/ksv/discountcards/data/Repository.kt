@@ -22,12 +22,14 @@ class Repository {
         return cardsDao.getCardAtId(id)
     }
 
-    fun editCard(card: Card){
-
+    suspend fun updateCard(card: Card){
+        val cardsDao = MyApp.getCardsDao()
+        cardsDao.update(card)
     }
 
-    fun deleteCard(card: Card){
-
+    suspend fun deleteCard(card: Card){
+        val cardsDao = MyApp.getCardsDao()
+        cardsDao.delete(card)
     }
 
     suspend fun saveOuterImageAsCard(outerImage: OuterImage): Card?{

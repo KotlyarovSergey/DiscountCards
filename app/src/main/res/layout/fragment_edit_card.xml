@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+    <data>
+        <variable
+            name="viewModel"
+            type="com.ksv.discountcards.presentation.CardsViewModel" />
+        <import type="android.net.Uri"/>
+    </data>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="8dp"
+        tools:context=".presentation.EditCardFragment">
+
+        <ImageView
+            android:id="@+id/image"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1.0"
+            android:src="@{viewModel.selectedCard != null ? Uri.parse(viewModel.selectedCard.fileUri) : Uri.EMPTY}"
+            android:contentDescription="@string/card_image" />
+
+        <EditText
+            android:id="@+id/card_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/card_title"
+            android:inputType="textCapSentences"
+            android:text="@{viewModel.selectedCard.title}"
+            android:textAlignment="center" />
+
+        <Button
+            android:id="@+id/apply_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/apply_button"/>
+
+    </LinearLayout>
+</layout>

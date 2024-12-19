@@ -5,17 +5,24 @@ import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.appbar.MaterialToolbar
 import com.ksv.discountcards.R
 import com.ksv.discountcards.databinding.FragmentHomeBinding
 import com.ksv.discountcards.entity.Card
@@ -31,16 +38,23 @@ class HomeFragment : Fragment() {
         CardRecyclerAdapter(
             { onOpenCard(it) },
             { onItemClickListener(it) },
-            { onItemLongClickListener(it) })
+            { onItemLongClickListener(it) },
+            { onCanBeEditItem(it) },
+            { onCanBeDeleteItems(it) }
+        )
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { galleryUri ->
             try {
-                cardTitleDialog(galleryUri)
+                addCardTitleDialog(galleryUri)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
     private lateinit var onBackPressedCallback: OnBackPressedCallback
+    private lateinit var mainMenu: Menu
+    private var canBeDeleteCards: List<Card> = emptyList()
+    private var canBeEditPositionItem: Int? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +62,6 @@ class HomeFragment : Fragment() {
         val dispatcher = requireActivity().onBackPressedDispatcher
         onBackPressedCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                Log.d("ksvlog", "isSelectMode: ${adapter.isSelectMode}")
                 if (adapter.isSelectMode) {
                     adapter.unSelectAll()
                 } else {
@@ -75,6 +88,9 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
+        (activity as AppCompatActivity).setSupportActionBar(toolbar)
+        addMenuProvider()
 
         binding.recycler.adapter = adapter
 
@@ -83,11 +99,51 @@ class HomeFragment : Fragment() {
         }
 
         viewModel.cards.onEach {
-            adapter.setDate(it)
+            adapter.setData(it)
         }.launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
-    private fun cardTitleDialog(imageUri: Uri?) {
+    private fun addMenuProvider() {
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_main, menu)
+                mainMenu = menu
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.menu_edit -> {
+                        canBeEditPositionItem?.let{
+                            val card = viewModel.cards.value[canBeEditPositionItem!!]
+                            viewModel.selectCard(card)
+                            adapter.unSelectAll()
+                            findNavController().navigate(R.id.action_homeFragment_to_editCardFragment)
+                        }
+                        true
+                    }
+                    R.id.menu_delete -> {
+                        val deleted = canBeDeleteCards
+                        Log.d("ksvlog", "HomeFrag.onMenuItSel : $deleted")
+                        adapter.unSelectAll()
+                        Log.d("ksvlog", "HomeFrag.onMenuItSel : $deleted")
+                        viewModel.deleteCards(deleted)
+                        true
+                    }
+                    R.id.menu_delete_test -> {
+                        val card = viewModel.cards.value.last()
+                        val deleted = listOf(card)
+                        viewModel.deleteCards(deleted)
+                        true
+                    }
+
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+    private fun addCardTitleDialog(imageUri: Uri?) {
         imageUri?.let {
             binding.fab.visibility = View.GONE
             val view = layoutInflater.inflate(R.layout.set_title_dialog, null)
@@ -97,18 +153,8 @@ class HomeFragment : Fragment() {
                 .setPositiveButton("OK") { _, _ ->
                     val title =
                         view.findViewById<EditText>(R.id.title_in_dialog).text.toString().trim()
-                    if (title.isNotEmpty()) {
-                        val outerImage = OuterImage(imageUri, title)
-                        viewModel.saveOuterImage(outerImage)
-                    } else {
-                        Toast
-                            .makeText(
-                                requireContext(),
-                                "Надо ввести название карты",
-                                Toast.LENGTH_SHORT
-                            )
-                            .show()
-                    }
+                    val outerImage = OuterImage(imageUri, title)
+                    viewModel.saveOuterImage(outerImage)
                 }
                 .setNegativeButton("Отмена") { _, _ -> }
                 .setOnDismissListener {
@@ -129,5 +175,19 @@ class HomeFragment : Fragment() {
 
     private fun onItemLongClickListener(position: Int) {
         //adapter.onItemLongClick(position)
+    }
+
+//    private fun onCanBeDeleteItems(deletedSet: Set<Int>){
+//        canBeDeleteItems = deletedSet
+//        mainMenu.findItem(R.id.menu_delete).isVisible = deletedSet.isNotEmpty()
+//    }
+    private fun onCanBeDeleteItems(deletedList: List<Card>){
+        canBeDeleteCards = deletedList
+        mainMenu.findItem(R.id.menu_delete).isVisible = canBeDeleteCards.isNotEmpty()
+    }
+
+    private fun onCanBeEditItem(position: Int?){
+        canBeEditPositionItem = position
+        mainMenu.findItem(R.id.menu_edit).isVisible = (position != null)
     }
 }

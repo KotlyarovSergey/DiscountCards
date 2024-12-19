@@ -1,0 +1,2 @@
+1. CardsViewModel saveOuterImage _cards.update : Изучить обновление LiveData для MutableList
+2. CardRecyclerAdapter		Заменить на ListAdapter

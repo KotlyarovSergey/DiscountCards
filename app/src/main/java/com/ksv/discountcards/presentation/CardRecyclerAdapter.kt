@@ -3,7 +3,6 @@ package com.ksv.discountcards.presentation
 import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.ksv.discountcards.R
@@ -13,12 +12,13 @@ import com.ksv.discountcards.entity.Card
 class CardRecyclerAdapter(
     private val openCard: (Card) -> Unit,
     private val onClick: (Int) -> Unit,
-    private val onLongClick: (Int) -> Unit
+    private val onLongClick: (Int) -> Unit,
+    private val canBeEdit: (Int?) -> Unit,
+    private val canBeDelete: (List<Card>) -> Unit
+
 ) : RecyclerView.Adapter<CardRecyclerAdapter.CardViewHolder>() {
     private var cards: List<Card> = emptyList()
-
     private val selectedItems = mutableSetOf<Int>()
-
     private var _isSelectMode = false
     val isSelectMode get() = _isSelectMode
 
@@ -43,7 +43,7 @@ class CardRecyclerAdapter(
         with(holder.binding) {
             title.text = card.title
             image.setImageURI(Uri.parse(card.fileUri))
-//            mainFrame.setOnClickListener { onClick(position) }
+            mainFrame.setOnClickListener { onClick(position) }
             mainFrame.setOnClickListener { onItemClick(position) }
             mainFrame.setOnLongClickListener {
                 //onLongClick(position)
@@ -51,19 +51,31 @@ class CardRecyclerAdapter(
                 return@setOnLongClickListener true
             }
             if (selectedItems.contains(position)) {
+//            if (selectedItems.value.contains(position)) {
                 val color = linear.context.getColor(R.color.grey)
                 linear.setBackgroundColor(color)
-//                check.visibility = View.VISIBLE
             } else {
-//                check.visibility = View.GONE
                 linear.setBackgroundColor(linear.context.getColor(R.color.card_background_normal))
             }
         }
     }
 
-    fun setDate(cardsList: List<Card>) {
+    fun setData(cardsList: List<Card>) {
+        Log.d("ksvlog", "Adapter.setData: size:${cardsList.size}")
         cards = cardsList
         notifyItemRangeChanged(0, cards.size)
+    }
+
+    fun unSelectAll() {
+        val allSelectedItems = selectedItems.toList()
+//        val allSelectedItems = selectedItems.value.toList()
+        selectedItems.clear()
+//        selectedItems.value.clear()
+        notifySelectedItemsChanged()
+        allSelectedItems.forEach {
+            notifyItemChanged(it)
+        }
+        _isSelectMode = false
     }
 
     private fun onItemClick(position: Int) {
@@ -74,6 +86,7 @@ class CardRecyclerAdapter(
             } else {
                 selectedItems.add(position)
             }
+            notifySelectedItemsChanged()
             notifyItemChanged(position)
         } else {
             openCard(cards[position])
@@ -82,16 +95,22 @@ class CardRecyclerAdapter(
 
     private fun onItemLongClick(position: Int) {
         selectedItems.add(position)
+//        selectedItems.value.add(position)
+        notifySelectedItemsChanged()
         notifyItemChanged(position)
         _isSelectMode = true
     }
 
-    fun unSelectAll() {
-        val allSelectedItems = selectedItems.toList()
-        selectedItems.clear()
-        allSelectedItems.forEach {
-            notifyItemChanged(it)
+    private fun notifySelectedItemsChanged(){
+        val itemToEdit = if(selectedItems.size == 1){
+            selectedItems.first()
+        } else {
+            null
         }
-        _isSelectMode = false
+        canBeEdit(itemToEdit)
+
+        val deletedCards = selectedItems.map { position -> cards[position] }
+        canBeDelete(deletedCards)
     }
+
 }
